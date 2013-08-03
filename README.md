@@ -3,14 +3,14 @@ CMF Utility Scripts
 
 Miscellaneous scripts for the CMF
 
-scripts/yaml_to_xliff.php
+scripts/yml-to-xliff.phar
 -------------------------
 
-Script that converts YAML to XLIFF files:
+Script that converts YAML to XLIFF translation files:
 
-    $ php yaml_to_xliff.php /path/to/YAML
+    $ php yml-to-xliff.phar convert
 
-Will create an XLIFF version of the YAML file in the same directory.
+Will create an XLIFF version of all YAML files in the directory.
 
 web/bs_standards.php
 --------------------
