@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# This script will update the .styleci.yml configuration on all CMF repositories.
+#
+# All repos: 
+#
+#   curl https://api.github.com/orgs/symfony-cmf/repos | grep '"name"'
+#
+
+STYLECI=$1
+STYLECIBRANCH="styleci"
+
+LIBS="symfony-cmf
+symfony-cmf-website cmf-sandbox CoreBundle ContentBundle BlockBundle Routing RoutingBundle MenuBundle TreeBrowserBundle SearchBundle SimpleCmsBundle symfony-cmf-standard CreateBundle BlogBundle RoutingAutoBundle MediaBundle Testing SeoBundle standard-edition RoutingAuto ResourceBundle Resource ResourceRestBundle"
+
+if [ ! -d workspace ]; then
+    mkdir workspace
+fi
+
+if [[ "" = $STYLECI ]]; then
+    echo "You must specify a path to the template .styleci.yml file."
+    exit 1
+fi
+
+cd workspace
+
+for LIB in $LIBS; do
+    REPO="git@github.com:symfony-cmf/"$LIB
+    if [ ! -d $LIB ]; then
+        git clone $REPO
+    fi
+
+    cd $LIB
+
+    BRANCH=`git rev-parse --symbolic-full-name --abbrev-ref HEAD`
+
+    if [ -f .styleci.yml ]; then
+        rm .styleci.yml
+    fi
+
+    if [ "$BRANCH" != "$STYLECIBRANCH" ]; then
+        if [ `git branch --list $STYLECIBRANCH`]; then
+            git branch $STYLECIBRANCH origin/master
+            gco checkout $STYLECIBRANCH
+        fi
+    fi
+
+    git reset --hard origin/master
+    cp $STYLECI .styleci.yml
+    git add .styleci.yml
+    git commit -m "Updated styleci"
+    cd ..
+done
+
+cd ..
+
+exit 0
