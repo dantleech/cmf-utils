@@ -10,8 +10,35 @@
 STYLECI=$1
 STYLECIBRANCH="styleci"
 
-LIBS="symfony-cmf
-symfony-cmf-website cmf-sandbox CoreBundle ContentBundle BlockBundle Routing RoutingBundle MenuBundle TreeBrowserBundle SearchBundle SimpleCmsBundle symfony-cmf-standard CreateBundle BlogBundle RoutingAutoBundle MediaBundle Testing SeoBundle standard-edition RoutingAuto ResourceBundle Resource ResourceRestBundle"
+
+# [BundleName] [StyleCI ID]
+LIBS="
+BlockBundle;4123055
+BlogBundle;7897343
+cmf-sandbox;1316499
+ContentBundle;1864589
+CoreBundle;1443095
+CreateBundle;5883356
+createphp;6075026
+MediaBundle;9294022
+MenuBundle;4233004
+Resource;26994566
+ResourceRestBundle;29090266
+Routing;4221270
+RoutingAuto;21073460
+RoutingAutoBundle;8671509
+RoutingBundle;4221277
+RoutingExtraBundle;9697382
+SearchBundle;4385837
+SeoBundle;16372913
+SimpleCmsBundle;4396665
+standard-edition;17054439
+symfony-cmf;793489
+symfony-cmf-standard;5259675
+symfony-cmf-website;806312
+Testing;9807986
+TreeBrowserBundle;4233010
+"
 
 if [ ! -d workspace ]; then
     mkdir workspace
@@ -25,7 +52,10 @@ fi
 cd workspace
 
 for LIB in $LIBS; do
+    STYLECIID=${LIB##*;}
+    LIB=${LIB%;*}
     REPO="git@github.com:symfony-cmf/"$LIB
+
     if [ ! -d $LIB ]; then
         git clone $REPO
     fi
@@ -39,16 +69,25 @@ for LIB in $LIBS; do
     fi
 
     if [ "$BRANCH" != "$STYLECIBRANCH" ]; then
-        if [ `git branch --list $STYLECIBRANCH`]; then
+        if [ ! `git branch --list $STYLECIBRANCH`]; then
             git branch $STYLECIBRANCH origin/master
-            gco checkout $STYLECIBRANCH
         fi
+        git checkout $STYLECIBRANCH
     fi
 
     git reset --hard origin/master
+
+    STYLECITAG="[![StyleCI](https://styleci.io/repos/"$STYLECIID"/shield)](https://styleci.io/repos/"$STYLECIID")"
+    awk '/\[.*\]/ && !x {print;print "'$STYLECITAG'"; x=1; next} 1' README.md > tmp
+    mv tmp README.md
+    head README.md
+
     cp $STYLECI .styleci.yml
     git add .styleci.yml
-    git commit -m "Updated styleci"
+    git add README.md
+    git commit -m "Introduced Style CI"
+    git push origin $STYLECIBRANCH -f
+    vimb "https://github.com/symfony-cmf/"$LIB &
     cd ..
 done
 
